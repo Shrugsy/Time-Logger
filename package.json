@@ -1,0 +1,21 @@
+{
+  "name": "timelogger",
+  "version": "1.0.0",
+  "description": "simple time logger",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron main.js",
+    "package": "asar pack TimeLogger-win32-x64/resources/app TimeLogger-win32-x64/resources/app.asar ",
+    "build": "electron-packager . TimeLogger"
+  },
+  "author": "Josh Fraser",
+  "license": "ISC",
+  "dependencies": {
+    "electron": "^1.7.9"
+  },
+  "devDependencies": {
+    "asar": "^0.14.0",
+    "electron-packager": "^10.1.0",
+    "electron-winstaller": "^2.6.3"
+  }
+}

@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Time Logging App</title>
+    <link rel="stylesheet" href="https://bootswatch.com/4/slate/bootstrap.min.css">
+
+
+  </head>
+  <!--start of body here  -->
+  <body onload="startTime();openingTime();">
+
+    <div class="container">
+      <h1>Time Logging app</h1>
+      <div id="myTime"></div>
+      <p id="openingTimeID">Opening time: </p>
+      <p id="timePassed">Total time spent this session: </p>
+      <div><h2>Add a task</h2>Task name: <input type="text" id="taskItem"></input>
+        <input type='button' onclick="addItem();taskItem.value=''" value='Add an item'/>
+        <p></p>
+
+      </div>
+        <div>
+          <h2 class="page-header">Time logged</h2>
+          <ol id="listSection">
+            <li id="noSelection" class='list-group-item'><input id="rdNoSelection" type="radio" name="selectedJob" value="blank" checked="true"><label value = "test", style = "font-weight:bold">&nbsp;No task:&nbsp;</label><label></label></li>
+            <br>
+          </ol>
+        </div>
+
+    </div>
+
+
+  </body>
+
+  <!--javascript bits-->
+
+
+  <script>
+  //note: to run from cmd: 'npm start'
+  //to package: 'npm run build'
+
+    var taskListElement = document.getElementById("listSection");
+	var jobItems = taskListElement.getElementsByTagName("li");
+    var jobList = [];
+    var myIndex = 0;
+	document.getElementById('noSelection').addEventListener('click', function(){document.getElementById('rdNoSelection').checked = true});
+    //document.getElementById('blank').addEventListener("click", (console.log('printMe')));
+
+    function addItem() {
+      //set the variable equal to the text box in the html bit
+      var taskItem = document.getElementById('taskItem').value;
+      //if text box has something then continue
+      if (taskItem != ''){
+        var loggedItem = document.createElement('li');
+        var label = document.createElement('label');
+        var label_1 = document.createElement('label');
+        var radioEntry = document.createElement('input');
+
+        radioEntry.type = "radio";
+        radioEntry.name = "selectedJob";
+        radioEntry.value = taskItem;
+
+        loggedItem.appendChild(radioEntry);
+        loggedItem.className = "list-group-item";
+        loggedItem.value = 0;
+
+        //label.id = taskItem;
+        label.style = "font-weight:bold"
+        label.appendChild(document.createTextNode('\xa0' + taskItem + ":" + '\xa0' ));
+
+
+
+
+
+        loggedItem.appendChild(label);
+        loggedItem.addEventListener("click", function(){radioEntry.checked = true});
+        loggedItem.appendChild(label_1);
+        loggedItem.addEventListener("click", function(){radioEntry.checked = true});
+
+        taskListElement.appendChild(loggedItem);
+        taskListElement.appendChild(document.createElement('br'));
+
+        //replace this eventually with access to the 'ol' class?
+        //jobList[myIndex] = taskItem;
+        jobTimeCount[myIndex] = 0;
+        myIndex = myIndex + 1;
+		jobTimeCount[myIndex] = 0;
+      }
+    }
+  </script>
+
+  <script>
+
+    function openingTime(){
+      var today = new Date();
+      var h = today.getHours();
+      var m = today.getMinutes();
+      var s = today.getSeconds();
+      h = prettyTime(h);
+      m = prettyTime(m);
+      s = prettyTime(s);
+      document.getElementById('openingTimeID').innerHTML = "Opening Time: " +
+      h + ":" + m + ":" + s;
+
+    }
+    var loggedTimeCount = 0;
+	//updateInterval in ms
+    var updateInterval = 1;
+    var jobTimeCount = [];
+    var checkIDX = 0;
+
+    var totHrs = 0;
+    var totMins = 0;
+    var totSecs = 0;
+    var totTimeString = '';
+
+	lastLoggedTime = new Date().getTime();
+
+
+
+    function startTime() {
+        var today = new Date();
+        var h = today.getHours();
+        var m = today.getMinutes();
+        var s = today.getSeconds();
+        h = prettyTime(h);
+        m = prettyTime(m);
+        s = prettyTime(s);
+        document.getElementById('myTime').innerHTML = "Current time: " +
+        h + ":" + m + ":" + s;
+
+        var selectedJob = document.querySelector('input[name = "selectedJob"]:checked').value;
+
+    		loggedTimeCount = 0;
+    		for (i = 0; i < jobItems.length; i++){
+    	  		if (i != 0){
+    				loggedTimeCount += jobItems[i].value;
+    			}
+      			var tmpLabel = jobItems[i].getElementsByTagName("label");
+      			jobTimeString = formatMilliseconds(jobItems[i].value);
+      			tmpLabel[1].innerHTML = jobTimeString;
+      			rdButton = jobItems[i].getElementsByTagName("input");
+      			selectedState = rdButton[0].checked;
+
+      			if (selectedState == true){
+      				jobItems[i].value += (((today.getTime() - lastLoggedTime)));
+      			}
+
+      			totTimeString = formatMilliseconds(loggedTimeCount);
+      			document.getElementById('timePassed').innerHTML = "Total time logged this session: " + totTimeString;
+
+          }
+
+            lastLoggedTime = today.getTime();
+            var t = setTimeout(startTime, updateInterval);
+    }
+
+
+    function prettyTime(i) {
+        if (i < 10) {i = "0" + i};  // add zero in front of numbers < 10
+        return i;
+    }
+
+	function prettyMillisecondTime(i){
+		if (i < 10) {i = "00" + i}
+		else if (i < 100) {i = "0" + i};
+		return i
+	}
+
+    function formatMilliseconds(inMilliseconds){
+      var outHours = 0;
+      var outMinutes = 0;
+      var outSeconds = 0;
+      var outMilliseconds = 0;
+      var outString = '';
+
+      outHours = prettyTime(Math.floor(inMilliseconds / 3600000));
+      outMinutes = prettyTime(Math.floor((inMilliseconds - (outHours * 3600000)) / 60000));
+      outSeconds = prettyTime(Math.floor((inMilliseconds - ((outHours * 3600000) + (outMinutes * 60000)))/1000));
+      outMilliseconds = prettyMillisecondTime(inMilliseconds - ((outHours * 3600000) + (outMinutes * 60000) + (outSeconds*1000)));
+
+      //outString = outHours + " Hours, " + outMinutes + " minutes, " + outSeconds + " seconds, " + outMilliseconds + " milliseconds";
+      outString = outHours + " hrs, " + outMinutes + " m, " + outSeconds + " s, " + outMilliseconds + " ms";
+      //outString = outHours + ":" + outMinutes + ":" + outSeconds + ":" + outMilliseconds;
+
+      return outString;
+    }
+
+
+  </script>
+
+  <script>
+    var electronInstaller = require('electron-winstaller');
+    require('./renderer.js');
+  </script>
+
+</html>
