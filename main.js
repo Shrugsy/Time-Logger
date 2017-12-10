@@ -17,7 +17,7 @@ function createWindow(){
   //set up window and use custom logo
   //__dirname is module (?) for current directory
   //win = new BrowserWindow({width:800, heigh:600, icon:__dirname+'/img/pld_logo.png'});
-  win = new BrowserWindow({width:600, height:600});
+  win = new BrowserWindow({width:800, height:800});
 
 
 
