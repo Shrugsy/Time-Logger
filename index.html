@@ -12,19 +12,23 @@
   <body onload="startTime();openingTime();">
 
     <div class="container">
-      <h1>Time Logging app</h1>
-      <div style="display: inline-block; font-weight:bold">
-        Opening time:
+      <h1>Task Timer</h1>
+      <br>
+
+      <h6 style="display: inline-block;">
+        Current time:
+      </h6>
+      <div id="currentTime" style="display: inline-block; font-weight:bold" class="lead">
       </div>
+      <br>
+
+      <h6 style="display: inline-block;">
+        Opening time:
+      </h6>
       <div id="openingTimeID" style="display: inline-block">
       </div>
 
-      <br>
-      <div style="display: inline-block; font-weight:bold">
-        Current time:
-      </div>
-      <div id="currentTime" style="display: inline-block;">
-      </div>
+
 
       <br>
       <div style="display: inline-block">Total time logged this session:</div>
@@ -41,6 +45,7 @@
       <div>
         <h2 class="page-header">Time logged</h2>
         <ol id="listSection" class="list-group">
+          <!--Note: need to populate this (class?) with data from each session or day!-->
           <li class='list-group-item list-group-item-action disabled'>
               <input type="radio" name="selectedJob" value="blank" checked="true">
               <label value="test", style="font-weight:bold">&nbsp;No task</label>
