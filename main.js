@@ -13,7 +13,8 @@ var knex = require("knex")({
   client: "sqlite3",
   connection: {
     filename: "./taskDB.sqlite3"
-  }
+  },
+  useNullAsDefault: true
 });
 
 class Store{
@@ -114,10 +115,7 @@ function createWindow(){
   win.once("ready-to-show", () => {console.log("READY TO SHOW!")});
 
   ipcMain.on("mainWindowLoaded", function (){
-    //let result = knex.select("TaskName").from("Tasks")
     let result = knex.select().from("Tasks")
-    //console.log("br");
-    //console.log(result);
     result.then(function(rows){
       win.webContents.send("resultSent", rows);
     });
@@ -131,6 +129,12 @@ function createWindow(){
   win.on('closed', () => {
     win = null;
   });
+
+  //below doesnt even work
+  //var imported = document.createElement('script');
+  //imported.src = './script.js';
+  //document.head.appendChild(imported);
+  //win.onbeforeunload = updateDB();
 }
 
 // Run create window function
@@ -143,6 +147,10 @@ app.on('window-all-closed', () => {
     app.quit();
   }
 });
+
+//global.jQuery = require('jquery');
+//$.getScript('./script.js');
+//win.onbeforeunload = updateDB();
 
 
 

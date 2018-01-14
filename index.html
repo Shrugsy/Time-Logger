@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html>
   <head>
     <meta charset="utf-8">
@@ -9,7 +10,8 @@
     <link rel="stylesheet" href="bootstrap.css">
   </head>
 
-  <body onload="tickTime();openingTime();">
+
+  <body onload="tickTime();openingTime();updateDB();">
 
     <div class="container">
       <h1>Task Timer</h1>
@@ -45,7 +47,8 @@
 
       <div>
         <h2 class="page-header">Time logged</h2>
-        <ol id="listSection" class="list-group">
+        <ul id="listSection" class="list-group">
+        <!--<ul id="listSection" class="sortable">-->
           <!--Note: need to populate this (class?) with data from each session or day!-->
           <li class='list-group-item list-group-item-action disabled'>
               <input type="radio" name="selectedJob" value="blank" checked="true">
@@ -53,15 +56,15 @@
               <label></label>
           </li>
           <br>
-        </ol>
+        </ul>
+
+
 
       </div>
-      <div id="myResult"></div>
-
     </div>
 
 
-  </body>
+
 
 <script>
   document.querySelector("#taskItem").addEventListener("keyup", event => {
@@ -72,6 +75,23 @@
 </script>
 
 <script src='script.js'></script>
+
+</body>
+
+<!-- try to fix this eventually to get sortable lists
+<script>
+  global.jQuery = require('jquery');
+</script>
+<script src="./jquery.sortable.js"></script>
+<script>
+  $('.sortable').sortable();
+</script>
+-->
+
+
+
+
+
   <script>
     var electronInstaller = require('electron-winstaller');
     require('./renderer.js');

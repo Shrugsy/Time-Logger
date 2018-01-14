@@ -6,24 +6,12 @@ const ipc = electron.ipcRenderer;
 document.addEventListener("DOMContentLoaded", function(){
   ipc.send("mainWindowLoaded");
   ipc.on("resultSent", function(evt, result){
-    //let resultEl = document.getElementById("myResult");
-    let resultEl2 = document.getElementById("myResult");
-    //console.log(resultEl2);
-    //console.log(result);
-    //console.log(result.length);
     for(var i = 0; i < result.length; i++){
-      //console.log("in loop here");
-      //console.log(i);
-      //console.log(result[i]);
-      //resultEl2.innerHTML += "Task Name: " + result[i].TaskName.toString() + "<br/>";
-      addItem(result[i].TaskName.toString(), result[i].TimeSpent);
-      console.log(result[i].TimeSpent);
+      addItem(result[i].taskTitle.toString(), result[i].timeSpent);
+      //console.log(result[i].TimeSpent);
     };
   });
 });
-
-
-
 
 var taskListElement = document.getElementById("listSection");
 var jobItems = taskListElement.getElementsByTagName("li");
@@ -31,6 +19,12 @@ var jobList = [];
 var myIndex = 0;
 jobItems[0].addEventListener('click', function(){jobItems[0].getElementsByTagName("input")[0].checked = true});
 //document.getElementById('blank').addEventListener("click", (console.log('printMe')));
+
+
+//var sqlite3 = require('sqlite3').verbose();
+//var db = new sqlite3.Database('./taskDB.sqlite3');
+//db.run("insert into Tasks values(2050, 'job_raw', 92)");
+
 
 
 
@@ -130,6 +124,8 @@ lastLoggedTime = new Date().getTime();
 //when midnight ticks, move all tasks to older one and create current task for new 'current day'?
 
 //this function should loop through each 'list-item' and update the checked one?
+
+//currently it is adding the time to whatever is there, might be ok to leave like this?
 function writeTime(inTime){
   loggedTimeCount = 0;
   for (i = 0; i < jobItems.length; i++){
@@ -157,10 +153,93 @@ function writeTime(inTime){
 
 }
 
+
+//function addListener
+window.onbeforeunload = function(e){
+  updateDB();
+  //alert("test");
+  //e.returnValue = "Exiting!";
+  //return "this is a string";
+  return null;
+}
+
+function addListener(){
+  window.addEventListener('beforeunload', onbeforeunload);
+  function onbeforeunload(e){
+    alert('test');
+    updateDB();
+    //var t = setTimeout(updateDB(),1000);
+    //var t = setTimeout(updateDB(),1000);
+    //e.returnValue = false;
+    //return null;
+  }
+
+}
+
+
 //this function should write all tasks to the database
 function updateDB(){
 
+  //var sqlite3 = require('sqlite3').verbose();
+  //var db = new sqlite3.Database('./taskDB.sqlite3');
+  //db.run("delete from Tasks");
+  //db.run("insert into Tasks values(2050, 'job_raw', 92)");
 
+
+  //alert('test');
+  //alert(db);
+
+
+  //alert("Saving data");
+  var knex = require("knex")({
+    client: "sqlite3",
+    connection: {
+      filename: "./taskDB.sqlite3"
+    },
+    useNullAsDefault: true
+  });
+
+  //console.log(knex);
+
+  //this deletes all existing entries from the sqlite3 database
+  //maybe there is a better way to handle this?
+
+  //when run 'onload', items are deleted but new items not re-inserted?
+  //they dont' exist yet?
+  //begin bulk cmt
+  console.log(jobItems.length);
+  if (jobItems.length > 1){
+    knex('Tasks').del().then();
+
+    //note: we use i = 1 and not 0 here because 0 is for 'no task'!
+    for (i = 1; i < jobItems.length; i++){
+      //below writes each task to the sqlite3 database!
+      knex('Tasks').insert({
+        //do something with date later
+        myDate: 0,
+        taskTitle: jobItems[i].getElementsByTagName("input")[0].value,
+        timeSpent: jobItems[i].value
+      }).then();
+    }
+  }
+
+
+  //end bulk cmt
+
+
+
+  //alert(knex);
+  //alert(jobItems[1]);
+  //alert(jobItems[1].value);
+  //I think below is 20 minutes (in milliseconds)
+  //the idea is that this saves every x minutes
+  //300000 for 5 minutes, 1200000 for 20 minutes?
+  dbUpdateInterval = 10000;
+  var t = setTimeout(updateDB, dbUpdateInterval);
+
+  //var t = setTimeout(updateDB, 1000);
+  console.log('database updated!');
+  //return null;
 }
 //this function should count the time (tickTime) and call writeTime?
 function tickTime() {
