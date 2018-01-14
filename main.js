@@ -1,4 +1,4 @@
-const {app, BrowserWindow} = require('electron');
+const {app, BrowserWindow, ipcMain} = require('electron');
 const path = require('path');
 const url = require('url');
 const fs = require('fs');
@@ -8,6 +8,13 @@ const fs = require('fs');
 if (handleSquirrelEvent(app)){
   return;
 }
+
+var knex = require("knex")({
+  client: "sqlite3",
+  connection: {
+    filename: "./taskDB.sqlite3"
+  }
+});
 
 class Store{
   constructor(opts) {
@@ -86,8 +93,8 @@ function createWindow(){
     let { width, height } = win.getBounds();
     // Now that we have them, save them using the `set` method.
     store.set('windowBounds', { width, height });
+    //store.set('test', {});
   });
-
 
 
 
@@ -102,6 +109,20 @@ function createWindow(){
     protocol: 'file:',
     slashes: true
   }));
+
+  win.once("ready-to-show", () => {win.show()});
+  win.once("ready-to-show", () => {console.log("READY TO SHOW!")});
+
+  ipcMain.on("mainWindowLoaded", function (){
+    //let result = knex.select("TaskName").from("Tasks")
+    let result = knex.select().from("Tasks")
+    //console.log("br");
+    //console.log(result);
+    result.then(function(rows){
+      win.webContents.send("resultSent", rows);
+    });
+  });
+
 
   // Open devtools (same as chrome dev tools)
   // () ==> {} is to run a function?

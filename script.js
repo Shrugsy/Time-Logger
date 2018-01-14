@@ -1,6 +1,29 @@
 
 //note: to run from cmd: 'npm start'
 //to package: 'npm run build'
+const electron = require("electron");
+const ipc = electron.ipcRenderer;
+document.addEventListener("DOMContentLoaded", function(){
+  ipc.send("mainWindowLoaded");
+  ipc.on("resultSent", function(evt, result){
+    //let resultEl = document.getElementById("myResult");
+    let resultEl2 = document.getElementById("myResult");
+    //console.log(resultEl2);
+    //console.log(result);
+    //console.log(result.length);
+    for(var i = 0; i < result.length; i++){
+      //console.log("in loop here");
+      //console.log(i);
+      //console.log(result[i]);
+      //resultEl2.innerHTML += "Task Name: " + result[i].TaskName.toString() + "<br/>";
+      addItem(result[i].TaskName.toString(), result[i].TimeSpent);
+      console.log(result[i].TimeSpent);
+    };
+  });
+});
+
+
+
 
 var taskListElement = document.getElementById("listSection");
 var jobItems = taskListElement.getElementsByTagName("li");
@@ -9,11 +32,14 @@ var myIndex = 0;
 jobItems[0].addEventListener('click', function(){jobItems[0].getElementsByTagName("input")[0].checked = true});
 //document.getElementById('blank').addEventListener("click", (console.log('printMe')));
 
-function addItem() {
+
+
+function addItem(taskName, taskSeconds) {
   //set the variable equal to the text box in the html bit
-  var taskItem = document.getElementById('taskItem').value;
+  //below is replaced with the 'taskName' function input
+  //var taskItem = document.getElementById('taskItem').value;
   //if text box has something then continue
-  if (taskItem != ''){
+  if (taskName != ''){
     var myListItem = document.createElement('li');
     var label = document.createElement('label');
     var label_1 = document.createElement('label');
@@ -28,15 +54,15 @@ function addItem() {
 
     radioEntry.type = "radio";
     radioEntry.name = "selectedJob";
-    radioEntry.value = taskItem;
+    radioEntry.value = taskName;
     //console.log(radioEntry.checked);
 
 
     label.style = "font-weight:bold"
-    label.appendChild(document.createTextNode('\xa0' + taskItem + ":" + '\xa0' ));
+    label.appendChild(document.createTextNode('\xa0' + taskName + ":" + '\xa0' ));
 
     myListItem.className = "list-group-item";
-    myListItem.value = 0;
+    myListItem.value = taskSeconds;
     myListItem.appendChild(radioEntry);
     myListItem.appendChild(label);
     myListItem.appendChild(label_1);
@@ -98,14 +124,52 @@ var totTimeString = '';
 
 lastLoggedTime = new Date().getTime();
 
-function startTime() {
+//layout: all tasks show on page, but hide all besides current date with toggle? not sure right now
+//may have two database files?
+//one for current day and one for all previous days
+//when midnight ticks, move all tasks to older one and create current task for new 'current day'?
+
+//this function should loop through each 'list-item' and update the checked one?
+function writeTime(inTime){
+  loggedTimeCount = 0;
+  for (i = 0; i < jobItems.length; i++){
+    //!= 0 because 0 is for 'no task'
+    if (i != 0){
+      loggedTimeCount += jobItems[i].value;
+      var tmpLabel = jobItems[i].getElementsByTagName("label");
+      jobTimeString = formatMilliseconds(jobItems[i].value);
+      tmpLabel[1].innerHTML = jobTimeString;
+    }
+    rdButton = jobItems[i].getElementsByTagName("input");
+    //we look through each task and update only the 'checked' one
+    //today.getTime() - lastLoggedTime is to calibrate the time since last call
+    //we change the className so that only the selected item shows differently
+    if (rdButton[0].checked == true){
+      jobItems[i].value += (inTime);
+      jobItems[i].className = "list-group-item list-group-item-action active";
+    }
+    else{
+      jobItems[i].className = "list-group-item";
+    }
+    totTimeString = formatMilliseconds(loggedTimeCount);
+    document.getElementById('timePassed').innerHTML = totTimeString;
+  }
+
+}
+
+//this function should write all tasks to the database
+function updateDB(){
+
+
+}
+//this function should count the time (tickTime) and call writeTime?
+function tickTime() {
+  //note that this will get the time when you call it
+  //today will be a statis object?
     var today = new Date();
-    var h = today.getHours();
-    var m = today.getMinutes();
-    var s = today.getSeconds();
-    h = prettyTime(h);
-    m = prettyTime(m);
-    s = prettyTime(s);
+    var h = prettyTime(today.getHours());
+    var m = prettyTime(today.getMinutes());
+    var s = prettyTime(today.getSeconds());
 
     myDayOfMonth = today.getDate();
     myDay = today.getDay();
@@ -114,36 +178,19 @@ function startTime() {
 
     dateString = formatDate(myDayOfMonth, myDay, myMonth, myYear);
     document.getElementById('currentTime').innerHTML = h + ":" + m + ":" + s + ", " + dateString;
+    //above is fine to stay here
 
-    var selectedJob = document.querySelector('input[name = "selectedJob"]:checked').value;
+    //writeTime(job)
+    //var selectedJob = document.querySelector('input[name = "selectedJob"]:checked').value;
 
-    loggedTimeCount = 0;
-    for (i = 0; i < jobItems.length; i++){
-        if (i != 0){
-        loggedTimeCount += jobItems[i].value;
-        var tmpLabel = jobItems[i].getElementsByTagName("label");
-        jobTimeString = formatMilliseconds(jobItems[i].value);
-        tmpLabel[1].innerHTML = jobTimeString;
-      }
+    timeCalibrated = today.getTime() - lastLoggedTime;
+    writeTime(timeCalibrated);
 
-        rdButton = jobItems[i].getElementsByTagName("input");
-        selectedState = rdButton[0].checked;
-
-        if (selectedState == true){
-          jobItems[i].value += (((today.getTime() - lastLoggedTime)));
-          jobItems[i].className = "list-group-item list-group-item-action active";
-        }
-        else{
-          jobItems[i].className = "list-group-item";
-        }
-
-        totTimeString = formatMilliseconds(loggedTimeCount);
-        document.getElementById('timePassed').innerHTML = totTimeString;
-
-      }
 
         lastLoggedTime = today.getTime();
-        var t = setTimeout(startTime, updateInterval);
+        //setTimeout attempts to call this function every 'updatedInterval' Milliseconds
+        //however, this fluctuates so it must be calibrated
+        var t = setTimeout(tickTime, updateInterval);
 }
 
 function prettyTime(i) {

@@ -6,16 +6,22 @@
   "scripts": {
     "start": "electron main.js",
     "package": "asar pack TimeLogger-win32-x64/resources/app TimeLogger-win32-x64/resources/app.asar ",
-    "build": "electron-packager . TimeLogger"
+    "build": "electron-packager . TimeLogger",
+    "rebuild": "electron-rebuild -f -w sqlite3",
+    "postinstall": "electron-builder install-app-deps"
   },
   "author": "Josh Fraser",
   "license": "ISC",
   "dependencies": {
-    "electron": "^1.7.9"
+    "electron": "^1.7.9",
+    "electron-builder": "^19.52.1",
+    "knex": "^0.14.2",
+    "sqlite3": "^3.1.13"
   },
   "devDependencies": {
     "asar": "^0.14.0",
     "electron-packager": "^10.1.0",
+    "electron-rebuild": "^1.7.3",
     "electron-winstaller": "^2.6.3"
   }
 }
