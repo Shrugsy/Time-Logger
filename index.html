@@ -10,8 +10,10 @@
     <link rel="stylesheet" href="bootstrap.css">
   </head>
 
-
-  <body onload="tickTime();openingTime();updateDB();">
+  <!--
+    <body onload="tickTime();openingTime();updateDB();">
+    -->
+  <body onload="tickTime();openingTime();">
 
     <div class="container">
       <h1>Task Timer</h1>
@@ -41,7 +43,7 @@
 
         <div class="form-group">
           <input type="text" id="taskItem" class="form-control mr-sm-2" placeholder="Task name">
-          <input id="submitButton" type="button" onclick="addItem(taskItem.value);taskItem.value=''" value='Add an item' class="btn btn-secondary my-2 my-sm-0">
+          <input id="submitButton" type="button" onclick="addItem(null,taskItem.value,0,new Date);taskItem.value=''" value='Add an item' class="btn btn-secondary my-2 my-sm-0">
         </div>
       </div>
 

@@ -114,12 +114,19 @@ function createWindow(){
   win.once("ready-to-show", () => {win.show()});
   win.once("ready-to-show", () => {console.log("READY TO SHOW!")});
 
-  ipcMain.on("mainWindowLoaded", function (){
-    let result = knex.select().from("Tasks")
-    result.then(function(rows){
-      win.webContents.send("resultSent", rows);
-    });
-  });
+  // ipcMain.on("mainWindowLoaded", function (){
+  //   knex.schema.createTableIfNotExists('Tasks', function (table){
+  //     table.integer('myDate');
+  //     table.string('taskTitle');
+  //     table.integer('timeSpent');
+
+  //   }).then();
+
+  //   let result = knex.select().from("Tasks")
+  //   result.then(function(rows){
+  //     win.webContents.send("resultSent", rows);
+  //   });
+  // });
 
 
   // Open devtools (same as chrome dev tools)

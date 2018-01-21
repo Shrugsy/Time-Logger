@@ -1,22 +1,110 @@
 
 //note: to run from cmd: 'npm start'
 //to package: 'npm run build'
-const electron = require("electron");
-const ipc = electron.ipcRenderer;
-document.addEventListener("DOMContentLoaded", function(){
-  ipc.send("mainWindowLoaded");
-  ipc.on("resultSent", function(evt, result){
-    for(var i = 0; i < result.length; i++){
-      addItem(result[i].taskTitle.toString(), result[i].timeSpent);
-      //console.log(result[i].TimeSpent);
-    };
-  });
+// const electron = require("electron");
+// const ipc = electron.ipcRenderer;
+// document.addEventListener("DOMContentLoaded", function(){
+//   ipc.send("mainWindowLoaded");
+//   ipc.on("resultSent", function(evt, result){
+//     //maybe put updateDB here for the initial run?
+//     for(var i = 0; i < result.length; i++){
+//       addItem(result[i].taskTitle.toString(), result[i].timeSpent);
+//       //console.log(result[i].TimeSpent);
+//     };
+//   });
+// });
+
+
+
+var knex = require("knex")({
+  client: "sqlite3",
+  connection: {
+    filename: "./taskDB.sqlite3"
+  },
+  useNullAsDefault: true
 });
+
+//create table if it does not already exist
+knex.schema.createTableIfNotExists('Tasks', function(table){
+  table.increments('id').primary().unsigned();
+  table.string('taskTitle');
+  table.integer('myDate');
+  table.integer('timeSpent');
+  table.string('myComments');
+}).then();
+
+//initialize page by reading sql and adding from the database
+let myResult = knex.select().from("Tasks");
+myResult.then(function(rows){
+  //console.log(rows);
+  for(var i = 0; i < rows.length; i++){
+    addItem(rows[i].id, rows[i].taskTitle.toString(), rows[i].timeSpent);
+  };
+});
+
+
+//Dictionary constructor function
+function Dictionary(){
+  this.myTasks = [];
+
+  //work out a way to deal with '0' as an input (doesn't AND together well?)
+  //maybe just don't have it here? dunno
+  this.add = function(id, taskTitle, timeSpent, myDate, myComments){
+    //if(id && taskTitle && timeSpent && myDate){
+    //if(id && taskTitle && myDate){
+      this.myTasks.push({
+        id: id,
+        taskTitle: taskTitle,
+        timeSpent: timeSpent,
+        myDate: myDate,
+        myComments: myComments
+      });
+    return this.myTasks;
+    //}
+  };
+
+  //remove by id
+  this.removeAt = function(id){
+    for (var i = 0; i < this.myTasks.length; i++){
+      if(this.myTasks[i].id === id){
+        this.myTasks.splice(this.myTasks[i], 1);
+        return this.myTasks;
+      }
+    }
+    return this.myTasks;
+  };
+
+  //find by id, return 'taskTitle' if found!
+  this.findAt = function(id){
+    for (var i = 0; i < this.myTasks.length; i++){
+      if(this.myTasks[i].id === id){
+        //return this.myTasks[i].taskTitle;
+        //return index of that id!
+        return i;
+      }
+    }
+    return this.myTasks;
+  };
+
+  //get length of dictionary
+  this.size = function(){
+    return this.myTasks.length;
+  };
+
+  //note: use Dictionary.myTasks to return all objects
+};
+
+var dict1 = new Dictionary();
+//dictionary1.add(1, "task1", 999, 1);
+//dictionary1.add(2, "task2", 999, 1);
+//dictionary1.add(3, "task3", 999, 1);
+//console.log(dictionary1.size())
+//for above, remember brackets or it returns the function instead of the value!
+//console.log(dictionary1.myTasks);
+
 
 var taskListElement = document.getElementById("listSection");
 var jobItems = taskListElement.getElementsByTagName("li");
-var jobList = [];
-var myIndex = 0;
 jobItems[0].addEventListener('click', function(){jobItems[0].getElementsByTagName("input")[0].checked = true});
 //document.getElementById('blank').addEventListener("click", (console.log('printMe')));
 
@@ -26,14 +114,44 @@ jobItems[0].addEventListener('click', function(){jobItems[0].getElementsByTagNam
 //db.run("insert into Tasks values(2050, 'job_raw', 92)");
 
 
-
-
-function addItem(taskName, taskSeconds) {
+//get this to work if there is no id as well!
+//add another input 'id' where if 'id' = 0, it assigns a new id?
+function addItem(id, taskTitle, timeSpent, myDate, myComments) {
   //set the variable equal to the text box in the html bit
-  //below is replaced with the 'taskName' function input
+  //below is replaced with the 'taskTitle' function input
   //var taskItem = document.getElementById('taskItem').value;
   //if text box has something then continue
-  if (taskName != ''){
+
+  //
+  // let myResult = knex.select().from("Tasks");
+  // myResult.then(function(rows){
+  //   //console.log(rows);
+  //   for(var i = 0; i < rows.length; i++){
+  //     addItem(rows[i].id, rows[i].taskTitle.toString(), rows[i].timeSpent);
+  //   };
+  // });
+  //temp thing
+
+  //if id = 0 or id not found in sql database, then add it and get what id sql comes up with
+
+  if (taskTitle != ''){
+    dict1.add(id, taskTitle, timeSpent, myDate);
+
+    //if id not found?
+    if (id == null){
+      knex('Tasks').insert({
+        //do something with date later
+        taskTitle: taskTitle,
+        timeSpent: timeSpent,
+        myDate: myDate,
+        myComments: myComments
+      })
+      .returning('id')
+      .then(function(id){
+        console.log(id);
+      });
+    }
+
     var myListItem = document.createElement('li');
     var label = document.createElement('label');
     var label_1 = document.createElement('label');
@@ -48,15 +166,15 @@ function addItem(taskName, taskSeconds) {
 
     radioEntry.type = "radio";
     radioEntry.name = "selectedJob";
-    radioEntry.value = taskName;
+    radioEntry.value = taskTitle;
     //console.log(radioEntry.checked);
 
 
     label.style = "font-weight:bold"
-    label.appendChild(document.createTextNode('\xa0' + taskName + ":" + '\xa0' ));
+    label.appendChild(document.createTextNode('\xa0' + taskTitle + ":" + '\xa0' ));
 
     myListItem.className = "list-group-item";
-    myListItem.value = taskSeconds;
+    myListItem.value = timeSpent;
     myListItem.appendChild(radioEntry);
     myListItem.appendChild(label);
     myListItem.appendChild(label_1);
@@ -74,8 +192,14 @@ function addItem(taskName, taskSeconds) {
         defaultRdArr[0].checked = true;
       }
       inListItem.remove();
+      knex('Tasks')
+      //.where('taskTitle = taskTitle')
+      .where('id', '=', id)
+      .del()
+      .then()
     }
-    myIndex = myIndex + 1;
+
+
   }
 }
 
@@ -127,6 +251,14 @@ lastLoggedTime = new Date().getTime();
 
 //currently it is adding the time to whatever is there, might be ok to leave like this?
 function writeTime(inTime){
+  //first we write to dictionary!
+
+  //DEBUG -- CURRENTLY WORKING HERE
+  // for (i = 0; i < dict1.size; i++){
+  //   //everything goes here
+
+  // }
+
   loggedTimeCount = 0;
   for (i = 0; i < jobItems.length; i++){
     //!= 0 because 0 is for 'no task'
@@ -154,62 +286,12 @@ function writeTime(inTime){
 }
 
 
-//function addListener
-window.onbeforeunload = function(e){
-  updateDB();
-  //alert("test");
-  //e.returnValue = "Exiting!";
-  //return "this is a string";
-  return null;
-}
-
-function addListener(){
-  window.addEventListener('beforeunload', onbeforeunload);
-  function onbeforeunload(e){
-    alert('test');
-    updateDB();
-    //var t = setTimeout(updateDB(),1000);
-    //var t = setTimeout(updateDB(),1000);
-    //e.returnValue = false;
-    //return null;
-  }
-
-}
-
-
 //this function should write all tasks to the database
 function updateDB(){
 
-  //var sqlite3 = require('sqlite3').verbose();
-  //var db = new sqlite3.Database('./taskDB.sqlite3');
-  //db.run("delete from Tasks");
-  //db.run("insert into Tasks values(2050, 'job_raw', 92)");
-
-
-  //alert('test');
-  //alert(db);
-
-
-  //alert("Saving data");
-  var knex = require("knex")({
-    client: "sqlite3",
-    connection: {
-      filename: "./taskDB.sqlite3"
-    },
-    useNullAsDefault: true
-  });
-
-  //console.log(knex);
-
-  //this deletes all existing entries from the sqlite3 database
-  //maybe there is a better way to handle this?
-
-  //when run 'onload', items are deleted but new items not re-inserted?
-  //they dont' exist yet?
-  //begin bulk cmt
   console.log(jobItems.length);
   if (jobItems.length > 1){
-    knex('Tasks').del().then();
+    //knex('Tasks').del().then();
 
     //note: we use i = 1 and not 0 here because 0 is for 'no task'!
     for (i = 1; i < jobItems.length; i++){
@@ -221,6 +303,17 @@ function updateDB(){
         timeSpent: jobItems[i].value
       }).then();
     }
+
+    //for (i = 1; i < )
+    //findAt(id) returns i
+    // knex('Tasks')
+    // //.where('taskTitle = taskTitle')
+    // .where('id', '=', id)
+    // .del()
+    // .then()
+
+
+
   }
 
 
@@ -234,13 +327,16 @@ function updateDB(){
   //I think below is 20 minutes (in milliseconds)
   //the idea is that this saves every x minutes
   //300000 for 5 minutes, 1200000 for 20 minutes?
-  dbUpdateInterval = 10000;
+  dbUpdateInterval = 500;
   var t = setTimeout(updateDB, dbUpdateInterval);
 
   //var t = setTimeout(updateDB, 1000);
   console.log('database updated!');
   //return null;
 }
+
+
+
 //this function should count the time (tickTime) and call writeTime?
 function tickTime() {
   //note that this will get the time when you call it
