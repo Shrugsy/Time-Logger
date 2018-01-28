@@ -13,7 +13,7 @@
   <!--
     <body onload="tickTime();openingTime();updateDB();">
     -->
-  <body onload="tickTime();openingTime();">
+  <body onload="tickTime();openingTime();updateDatabaseTimes();">
 
     <div class="container">
       <h1>Task Timer</h1>
@@ -42,8 +42,8 @@
         <h2>Add a task</h2>
 
         <div class="form-group">
-          <input type="text" id="taskItem" class="form-control mr-sm-2" placeholder="Task name">
-          <input id="submitButton" type="button" onclick="addItem(null,taskItem.value,0,new Date);taskItem.value=''" value='Add an item' class="btn btn-secondary my-2 my-sm-0">
+          <input type="text" id="taskItem" class="form-control mr-sm-2" style = "background: #b7b7b7" placeholder="Task name">
+          <input id="submitButton" type="button" onclick="addItemToHTML(null,taskItem.value,0,new Date, &quot;&quot;);taskItem.value=''" value='Add an item' class="btn btn-secondary my-2 my-sm-0">
         </div>
       </div>
 

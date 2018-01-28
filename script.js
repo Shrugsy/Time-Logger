@@ -8,7 +8,7 @@
 //   ipc.on("resultSent", function(evt, result){
 //     //maybe put updateDB here for the initial run?
 //     for(var i = 0; i < result.length; i++){
-//       addItem(result[i].taskTitle.toString(), result[i].timeSpent);
+//       addItemToHTML(result[i].taskTitle.toString(), result[i].timeSpent);
 //       //console.log(result[i].TimeSpent);
 //     };
 //   });
@@ -38,7 +38,7 @@ let myResult = knex.select().from("Tasks");
 myResult.then(function(rows){
   //console.log(rows);
   for(var i = 0; i < rows.length; i++){
-    addItem(rows[i].id, rows[i].taskTitle.toString(), rows[i].timeSpent);
+    addItemToHTML(rows[i].id, rows[i].taskTitle.toString(), rows[i].timeSpent, rows[i].myDate, rows[i].myComments.toString());
   };
 });
 
@@ -108,6 +108,7 @@ var jobItems = taskListElement.getElementsByTagName("li");
 jobItems[0].addEventListener('click', function(){jobItems[0].getElementsByTagName("input")[0].checked = true});
 //document.getElementById('blank').addEventListener("click", (console.log('printMe')));
 
+var taskComments = taskListElement.getElementsByTagName("textarea");
 
 //var sqlite3 = require('sqlite3').verbose();
 //var db = new sqlite3.Database('./taskDB.sqlite3');
@@ -116,89 +117,168 @@ jobItems[0].addEventListener('click', function(){jobItems[0].getElementsByTagNam
 
 //get this to work if there is no id as well!
 //add another input 'id' where if 'id' = 0, it assigns a new id?
-function addItem(id, taskTitle, timeSpent, myDate, myComments) {
+var myThing;
+function addItemToDatabase(inID, taskTitle, timeSpent, myDate, myComments){
+  //var myThing;
+  if (inID == null){
+  return myThing = knex('Tasks')
+  .insert({
+    //do something with date later
+    taskTitle: taskTitle,
+    timeSpent: timeSpent,
+    myDate: myDate,
+    myComments: myComments
+  })
+  .returning('id')
+  .then(function(id){
+    //inIDGlobal = id;
+    //console.log('id within then():  ' + id);
+    //console.log('inID within then(): ' + inIDGlobal);
+    return id[0];
+  });
+
+  console.log(myThing);
+  //return inIDGlobal;
+} else {
+  return knex('Tasks')
+  .returning('id')
+  .then(function(){
+    return inID;
+  });
+  //inID;
+};
+
+}
+
+var inIDGlobal;
+function addItemToHTML(inID, taskTitle, timeSpent, myDate, myComments) {
   //set the variable equal to the text box in the html bit
   //below is replaced with the 'taskTitle' function input
   //var taskItem = document.getElementById('taskItem').value;
   //if text box has something then continue
 
-  //
-  // let myResult = knex.select().from("Tasks");
-  // myResult.then(function(rows){
-  //   //console.log(rows);
-  //   for(var i = 0; i < rows.length; i++){
-  //     addItem(rows[i].id, rows[i].taskTitle.toString(), rows[i].timeSpent);
-  //   };
-  // });
-  //temp thing
-
   //if id = 0 or id not found in sql database, then add it and get what id sql comes up with
-
+  //var tmp;
   if (taskTitle != ''){
-    dict1.add(id, taskTitle, timeSpent, myDate);
+    
+    //adds to database if inID == null. Returns wahtever inID is afterwards
+    addItemToDatabase(inID, taskTitle, timeSpent, myDate, myComments).then(function(inID){
+      //console.log('inID after then(): ' + inID);
 
-    //if id not found?
-    if (id == null){
-      knex('Tasks').insert({
-        //do something with date later
-        taskTitle: taskTitle,
-        timeSpent: timeSpent,
-        myDate: myDate,
-        myComments: myComments
-      })
-      .returning('id')
-      .then(function(id){
-        console.log(id);
-      });
-    }
-
-    var myListItem = document.createElement('li');
-    var label = document.createElement('label');
-    var label_1 = document.createElement('label');
-    var radioEntry = document.createElement('input');
-    var removeButton = document.createElement('button');
-    var myBreak = document.createElement('br');
-
-    removeButton.type = "button";
-    removeButton.className = "btn btn-primary btn-sm";
-    removeButton.style = "float: right";
-    removeButton.innerHTML = "Delete Task";
-
-    radioEntry.type = "radio";
-    radioEntry.name = "selectedJob";
-    radioEntry.value = taskTitle;
-    //console.log(radioEntry.checked);
+      dict1.add(inID, taskTitle, timeSpent, myDate);
+      var myListItem = document.createElement('li');
+      var label = document.createElement('label');
+      var labelText = document.createTextNode('\xa0' + taskTitle + ":" + '\xa0' );
+      var labelEditBox = document.createElement('input');
+      var label_1 = document.createElement('label');
+      
+      var radioEntry = document.createElement('input');
+      var editButton = document.createElement('button');
+      var removeButton = document.createElement('button');
 
 
-    label.style = "font-weight:bold"
-    label.appendChild(document.createTextNode('\xa0' + taskTitle + ":" + '\xa0' ));
+      var commentTextarea = document.createElement('textarea');
+      commentTextarea.class = "form-control";
+      commentTextarea.rows = "1";
+      //commentTextarea.background = "#ffffff";
+      commentTextarea.id = "tmpText";
+      commentTextarea.style.background = "#b7b7b7";
+      commentTextarea.value = myComments;
+      commentTextarea.placeholder = "Notes";
 
-    myListItem.className = "list-group-item";
-    myListItem.value = timeSpent;
-    myListItem.appendChild(radioEntry);
-    myListItem.appendChild(label);
-    myListItem.appendChild(label_1);
-    myListItem.addEventListener("click", function(){radioEntry.checked = true});
-    myListItem.appendChild(removeButton);
+      var myBreak = document.createElement('br');
 
-    taskListElement.appendChild(myListItem);
-    taskListElement.appendChild(myBreak);
-    removeButton.addEventListener("click", function(){deleteTask(myListItem, radioEntry), myBreak.remove()});
+      labelEditBox.style.background = "#b7b7b7";
+      labelEditBox.placeholder = taskTitle;
+      labelEditBox.rows = "1";
 
-    function deleteTask(inListItem, inRdButton){
 
-      if (inRdButton.checked == true){
-        defaultRdArr = jobItems[0].getElementsByTagName("input");
-        defaultRdArr[0].checked = true;
-      }
-      inListItem.remove();
-      knex('Tasks')
-      //.where('taskTitle = taskTitle')
-      .where('id', '=', id)
-      .del()
-      .then()
-    }
+      //editButton.type = "button";
+      //editButton.className = "btn btn-primary btn-sm";
+      //editButton.style = "float: right";
+      //editButton.innerHTML = "Edit";
 
+      removeButton.type = "button";
+      removeButton.className = "btn btn-primary btn-sm";
+      removeButton.style = "float: right";
+      removeButton.innerHTML = "Delete";
+
+      radioEntry.type = "radio";
+      radioEntry.name = "selectedJob";
+      //radioEntry.value = taskTitle;
+      //console.log(radioEntry.checked);
+      label.style = "font-weight:bold"
+      label.id = "taskTitle"
+      label.appendChild(labelText);
+
+      myListItem.className = "list-group-item";
+      
+      //can't assign a string to below, list item values are for the order?
+      //myListItem.value = taskTitle;
+      //myListItem.value = "itsastring";
+      myListItem.appendChild(radioEntry);
+      myListItem.appendChild(label);
+      myListItem.appendChild(label_1);
+      myListItem.addEventListener("click", function(){radioEntry.checked = true});
+      myListItem.appendChild(removeButton);
+      //myListItem.appendChild(editButton);
+
+      taskListElement.appendChild(myListItem);
+      taskListElement.appendChild(commentTextarea);
+      taskListElement.appendChild(myBreak);
+      removeButton.addEventListener("click", function(){deleteTask(myListItem, radioEntry), myBreak.remove(), commentTextarea.remove()});
+      //editButton.addEventListener("click", function(){editTask(label, labelEditBox, radioEntry)});
+      label.addEventListener("click", function(){editTask(label, labelEditBox, radioEntry)});
+      //labelEditBox.addEventListener("blur", saveEdit(label, labelEditBox, radioEntry));
+      labelEditBox.onblur = function(){
+        //console.log('blurring')
+        //console.log(this.value);
+
+        //change radioEntry.value to dict entry!
+        //console.log(inID);
+        //console.log(this.value)
+/*         knex('Tasks')
+        .where('id', '=', inID)
+        .update({
+          taskTitle: this.value
+        })
+        .then() */
+
+        for (i = 0; i < dict1.size(); i++){
+          if (inID == dict1.myTasks[i].id){
+            dict1.myTasks[i].taskTitle = this.value
+          }
+        }
+
+        //radioEntry.value = this.value;
+        label.innerHTML = '\xa0' + this.value + ":" + '\xa0' ;
+        this.remove();
+      };
+
+      function editTask(inLabel, inLabelEditBox, inRadioEntry){
+        
+        inRadioEntry.parentNode.insertBefore(inLabelEditBox, inRadioEntry.nextSibling);
+        inLabelEditBox.focus();
+        inLabel.innerHTML = ":" + '\xa0' ;
+      };
+
+      function deleteTask(inListItem, inRdButton){
+        //need to remove from dictionary also!
+
+        if (inRdButton.checked == true){
+          defaultRdArr = jobItems[0].getElementsByTagName("input");
+          defaultRdArr[0].checked = true;
+        }
+        inListItem.remove();
+        dict1.removeAt(inID);
+        
+        knex('Tasks')
+        //.where('taskTitle = taskTitle')
+        .where('id', '=', inID)
+        .del()
+        .then()
+      };
+  }); 
 
   }
 }
@@ -251,21 +331,17 @@ lastLoggedTime = new Date().getTime();
 
 //currently it is adding the time to whatever is there, might be ok to leave like this?
 function writeTime(inTime){
-  //first we write to dictionary!
-
-  //DEBUG -- CURRENTLY WORKING HERE
-  // for (i = 0; i < dict1.size; i++){
-  //   //everything goes here
-
-  // }
 
   loggedTimeCount = 0;
-  for (i = 0; i < jobItems.length; i++){
+  //for (i = 0; i < jobItems.length; i++){
+  for (i = 0; i < dict1.size()+1; i++){
     //!= 0 because 0 is for 'no task'
-    if (i != 0){
-      loggedTimeCount += jobItems[i].value;
+    if (i > 0){
+      //loggedTimeCount += jobItems[i].value;
+      loggedTimeCount += dict1.myTasks[i-1].timeSpent;
       var tmpLabel = jobItems[i].getElementsByTagName("label");
-      jobTimeString = formatMilliseconds(jobItems[i].value);
+      //jobTimeString = formatMilliseconds(jobItems[i].value);
+      jobTimeString = formatMilliseconds(dict1.myTasks[i-1].timeSpent);
       tmpLabel[1].innerHTML = jobTimeString;
     }
     rdButton = jobItems[i].getElementsByTagName("input");
@@ -273,68 +349,58 @@ function writeTime(inTime){
     //today.getTime() - lastLoggedTime is to calibrate the time since last call
     //we change the className so that only the selected item shows differently
     if (rdButton[0].checked == true){
-      jobItems[i].value += (inTime);
+      //existing value is added to input value (the time increment amount which is the calibrated time since last 'setTimeout' call)
+      //write to dictionary time here!
+
+      if (i > 0){
+        dict1.myTasks[i-1].timeSpent += inTime;
+      }
       jobItems[i].className = "list-group-item list-group-item-action active";
     }
     else{
       jobItems[i].className = "list-group-item";
     }
+
+    //below is just to display the total logged time on the page
     totTimeString = formatMilliseconds(loggedTimeCount);
     document.getElementById('timePassed').innerHTML = totTimeString;
   }
 
 }
 
+//this function updates the times (and comments?) in the database per interval
+function updateDatabaseTimes(){
+  //ISSUE: times do not update for new tasks!
+  //[DEBUG] fix this issue!
 
-//this function should write all tasks to the database
-function updateDB(){
+  //loop for each object in dictionary. Is there a more efficient way?
+  for (i = 0; i < dict1.size(); i++){
+    //console.log('updating database');
+    //console.log(i);
 
-  console.log(jobItems.length);
-  if (jobItems.length > 1){
-    //knex('Tasks').del().then();
-
-    //note: we use i = 1 and not 0 here because 0 is for 'no task'!
-    for (i = 1; i < jobItems.length; i++){
-      //below writes each task to the sqlite3 database!
-      knex('Tasks').insert({
-        //do something with date later
-        myDate: 0,
-        taskTitle: jobItems[i].getElementsByTagName("input")[0].value,
-        timeSpent: jobItems[i].value
-      }).then();
-    }
-
-    //for (i = 1; i < )
-    //findAt(id) returns i
-    // knex('Tasks')
-    // //.where('taskTitle = taskTitle')
-    // .where('id', '=', id)
-    // .del()
-    // .then()
+    //[DEBUG]
+    //fix this later on when its split up into spaces, variable, :, space
+    //dict1.myTasks[i].taskTitle = jobItems[i+1].getElementsByTagName("Label")[0].innerHTML;
+    dict1.myTasks[i].myComments = taskComments[i].value;
 
 
-
+    knex('Tasks')
+    .where('id', '=', dict1.myTasks[i].id)
+    .update({
+      taskTitle: dict1.myTasks[i].taskTitle,
+      timeSpent: dict1.myTasks[i].timeSpent,
+      myComments: dict1.myTasks[i].myComments
+    })
+    .then()
+    //don't forget .then() so it runs!
   }
 
-
-  //end bulk cmt
-
-
-
-  //alert(knex);
-  //alert(jobItems[1]);
-  //alert(jobItems[1].value);
-  //I think below is 20 minutes (in milliseconds)
-  //the idea is that this saves every x minutes
   //300000 for 5 minutes, 1200000 for 20 minutes?
   dbUpdateInterval = 500;
-  var t = setTimeout(updateDB, dbUpdateInterval);
+  var t = setTimeout(updateDatabaseTimes, dbUpdateInterval);
+  //console.log('database updated');
 
-  //var t = setTimeout(updateDB, 1000);
-  console.log('database updated!');
-  //return null;
 }
-
 
 
 //this function should count the time (tickTime) and call writeTime?
