@@ -52,6 +52,7 @@ function Dictionary(){
   this.add = function(id, taskTitle, timeSpent, myDate, myComments){
     //if(id && taskTitle && timeSpent && myDate){
     //if(id && taskTitle && myDate){
+      console.log('Adding: ' + taskTitle + ', ID: ' + id);
       this.myTasks.push({
         id: id,
         taskTitle: taskTitle,
@@ -64,10 +65,15 @@ function Dictionary(){
   };
 
   //remove by id
+  //[DEBUG]
+  //is this the problem function?
   this.removeAt = function(id){
+    
     for (var i = 0; i < this.myTasks.length; i++){
       if(this.myTasks[i].id === id){
-        this.myTasks.splice(this.myTasks[i], 1);
+        console.log('Removing: ' + this.myTasks[i].taskTitle + ', ID: '  + id);
+        //this.myTasks.splice(this.myTasks[i], 1);
+        this.myTasks.splice(i, 1)
         return this.myTasks;
       }
     }
@@ -226,23 +232,11 @@ function addItemToHTML(inID, taskTitle, timeSpent, myDate, myComments) {
       taskListElement.appendChild(myListItem);
       taskListElement.appendChild(commentTextarea);
       taskListElement.appendChild(myBreak);
-      removeButton.addEventListener("click", function(){deleteTask(myListItem, radioEntry), myBreak.remove(), commentTextarea.remove()});
+      removeButton.addEventListener("click", function(){deleteTask(myListItem, radioEntry, inID), myBreak.remove(), commentTextarea.remove()});
       //editButton.addEventListener("click", function(){editTask(label, labelEditBox, radioEntry)});
       label.addEventListener("click", function(){editTask(label, labelEditBox, radioEntry)});
       //labelEditBox.addEventListener("blur", saveEdit(label, labelEditBox, radioEntry));
       labelEditBox.onblur = function(){
-        //console.log('blurring')
-        //console.log(this.value);
-
-        //change radioEntry.value to dict entry!
-        //console.log(inID);
-        //console.log(this.value)
-/*         knex('Tasks')
-        .where('id', '=', inID)
-        .update({
-          taskTitle: this.value
-        })
-        .then() */
 
         for (i = 0; i < dict1.size(); i++){
           if (inID == dict1.myTasks[i].id){
@@ -262,13 +256,16 @@ function addItemToHTML(inID, taskTitle, timeSpent, myDate, myComments) {
         inLabel.innerHTML = ":" + '\xa0' ;
       };
 
-      function deleteTask(inListItem, inRdButton){
+      function deleteTask(inListItem, inRdButton, inID){
+        //console.log('inID: ' + inID);
         //need to remove from dictionary also!
 
         if (inRdButton.checked == true){
+          console.log('radio button checked');
           defaultRdArr = jobItems[0].getElementsByTagName("input");
           defaultRdArr[0].checked = true;
         }
+
         inListItem.remove();
         dict1.removeAt(inID);
         
