@@ -1,3 +1,3 @@
 # Time-Logger  
-logs time for tasks.  
-don't forget to include node_modules files if building with electron (not included on here)
+Logs time spent on tasks.
+Please note that node_modules are not included here. Install npm node_modules and additional dependencies as per package.json.
