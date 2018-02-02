@@ -196,6 +196,7 @@ function addItemToHTML(inID, taskTitle, timeSpent, myDate, myComments) {
 
       labelEditBox.style.background = "#b7b7b7";
       labelEditBox.placeholder = taskTitle;
+      labelEditBox.value = taskTitle;
       labelEditBox.rows = "1";
 
 
