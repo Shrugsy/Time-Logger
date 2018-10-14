@@ -13,42 +13,92 @@
   <!--
     <body onload="tickTime();openingTime();updateDB();">
     -->
+    <!--
   <body onload="tickTime();openingTime();updateDatabaseTimes();">
+  -->
+  <body onload="tickTime();updateDatabaseTimes();">
 
     <div class="container">
       <h1>Task Timer</h1>
-      <br>
 
+
+      <!--
       <h6 style="display: inline-block;">
         Current time:
       </h6>
+    -->
       <div id="currentTime" style="display: inline-block; font-weight:bold" class="lead">
       </div>
       <br>
+      <div>
+        <table width="50%" class="table-dark table-hover">
+          <tr>
+            <td>
+              <div style="display: inline-block">https://teamup.com/</div>
+            </td>
+            <td>
+              <input type="password" id="teamUpURLEnd" class="form-control-plaintext" style = "color: white; height: 30px; width: 200px" placeholder="Enter calender URL end here" disabled="">
+            </td>
+          </tr>
 
+          <tr>
+            <td>
+                <div style="display: inline-block">User: </div>
+            </td>
+            <td>
+
+              <input type="text" id="teamUpUser" class="form-control-plaintext" style = "color: white; height: 30px; width: 200px" placeholder="Enter username" disabled="">
+            </td>
+          </tr>
+
+          <tr>
+            <td>
+              <div style="display: inline-block">Subcalendar id: </div>
+            </td>
+            <td>
+              <input type="text" id="teamUpSubcalendar_Ids" class="form-control-plaintext" style = "color: white; height: 30px; width: 200px" placeholder="Enter subcalendar id" disabled="">
+            </td>
+          </tr>
+        </table>
+
+        <label type="button" id="editTeamUpButton" onclick="editTeamUpDetails()" class="btn btn-primary btn-sm active" style="display: inline-block" >Edit details</label>
+        <label type="button" id="saveTeamUpDetailsButton" onclick="saveTeamUpDetails()" class="btn btn-primary btn-sm active" style="display: none">Save TeamUp details</label>
+        <br>
+
+        <label type="button" onclick="signInRequest()" class="btn btn-primary btn-sm active">Sign in</label>
+        <label type="button" onclick = "signOutRequest()" class="btn btn-primary btn-sm active">Sign out</label>
+        <div id="signInOutStatus"></div>
+        <div id="signInOutLog"></div>
+
+        <br>
+        <!--
+        have another button here. show this after clicking 'save details' hide it after clicking 'edit'?
+        -->
+              </div>
+      <!--
       <h6 style="display: inline-block;">
         Opening time:
       </h6>
       <div id="openingTimeID" style="display: inline-block">
       </div>
-
-
-
       <br>
       <div style="display: inline-block">Total time logged this session:</div>
       <div id="timePassed" style="display: inline-block"></div>
+    -->
 
       <div>
+        <!--
         <h2>Add a task</h2>
+        -->
 
-        <div class="form-group">
-          <input type="text" id="taskItem" class="form-control mr-sm-2" style = "background: #b7b7b7" placeholder="Task name">
-          <input id="submitButton" type="button" onclick="addItemToHTML(null,taskItem.value,0,new Date, &quot;&quot;);taskItem.value=''" value='Add an item' class="btn btn-secondary my-2 my-sm-0">
-        </div>
       </div>
 
       <div>
         <h2 class="page-header">Time logged</h2>
+        <div class="form-group" style="display: flex">
+          <input type="text" id="taskItem" class="form-control form-control-sm" style = "background: #b7b7b7" placeholder="Task name">
+          <label id="submitButton" type="button" onclick="addItemToHTML(null,taskItem.value,0,new Date, &quot;&quot;);taskItem.value=''" class="btn btn-secondary btn-sm">Add an item</label>
+        </div>
         <ul id="listSection" class="list-group">
         <!--<ul id="listSection" class="sortable">-->
           <!--Note: need to populate this (class?) with data from each session or day!-->
